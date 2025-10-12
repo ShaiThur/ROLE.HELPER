@@ -1,0 +1,110 @@
+version: "3.8"
+
+services:
+  openvpn:
+    restart: always
+    image: dperson/openvpn-client:latest
+    container_name: openvpn-nl
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    environment:
+      - TZ=Europe/Amsterdam
+      - FIREWALL=true
+      - ROUTE=192.168.0.0/16
+    volumes:
+      - ./proxy/only_arthur.ovpn:/vpn/vpn.conf:ro
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=0
+    healthcheck:
+      test: [ "CMD", "sh", "-c", "curl -sf https://ifconfig.me | grep -q '.'" ]
+      interval: 60s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    ports:
+      - "8081:8080"
+    networks:
+      - vpn_network
+
+  vpn-checker:
+    image: curlimages/curl:latest
+    container_name: vpn-check
+    network_mode: "service:openvpn"
+    depends_on:
+      openvpn:
+        condition: service_healthy
+    command: >
+      sh -c "
+      while true; do
+        echo '=== VPN Status Check ===';
+        echo 'External IP:';
+        curl -s https://ifconfig.me;
+        echo '';
+        echo 'Location:';
+        curl -s https://ipapi.co/json | grep -E 'country_name|city';
+        echo '';
+        echo 'Testing blocked API...';
+        curl -s -o /dev/null -w 'HTTP Status: %{http_code}\n' https://twitter.com || echo 'API check failed';
+        echo '========================';
+        sleep 300;
+      done
+      "
+    restart: unless-stopped
+
+  python-app:
+    restart: always
+    container_name: role-helper
+    image: role-helper:1.0
+    network_mode: "service:openvpn"
+    depends_on:
+      openvpn:
+        condition: service_healthy
+      db:
+        condition: service_started
+    logging:
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 10m
+    build:
+      context: "."
+      dockerfile: ./Dockerfile
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=db
+    command: [ "python", "main.py" ]
+
+  db:
+    restart: always
+    container_name: postgres-db
+    image: ankane/pgvector
+    environment:
+      - POSTGRES_DB=vectordb
+      - POSTGRES_USER=role-helper-history
+      - POSTGRES_PASSWORD=role-helper-history
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - vpn_network
+    ports:
+      - "5555:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U role-helper-history -d vectordb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  vpn_network:
+    driver: bridge

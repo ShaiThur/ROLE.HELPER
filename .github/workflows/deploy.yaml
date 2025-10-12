@@ -1,0 +1,96 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Create .env file
+        run: |
+          cat > .env << 'EOF'
+          ${{ secrets.ENV_FILE }}
+          EOF
+
+      - name: Create VPN config
+        run: |
+          echo "${{ secrets.OVPN_CONFIG_BASE64 }}" | base64 -d > only_arthur.ovpn
+
+      - name: Copy files to server
+        run: |
+          ssh -o StrictHostKeyChecking=no deployer@109.120.182.198 "mkdir -p ~/app/proxy"
+          scp -o StrictHostKeyChecking=no .env deployer@109.120.182.198:~/app/.env
+          scp -o StrictHostKeyChecking=no only_arthur.ovpn deployer@109.120.182.198:~/app/proxy/only_arthur.ovpn
+
+      - name: Deploy application
+        run: |
+          ssh -o StrictHostKeyChecking=no deployer@109.120.182.198 "
+            echo '=== Starting Deployment ==='
+            cd ~/app
+
+            if [ ! -d .git ]; then
+              echo 'Cloning repository...'
+              git clone https://github.com/${{ github.repository }}.git .
+            else
+              echo 'Pulling latest changes...'
+              git pull origin main
+            fi
+
+            echo '=== Verifying configuration files ==='
+            if [ ! -f .env ]; then
+              echo 'ERROR: .env file not found!'
+              exit 1
+            fi
+            
+            if [ ! -f proxy/only_arthur.ovpn ]; then
+              echo 'ERROR: VPN config not found!'
+              exit 1
+            fi
+
+            echo 'Configuration files verified successfully'
+          
+            echo '=== Stopping old containers ==='
+            docker-compose down || true
+            
+            echo '=== Building and starting containers ==='
+            docker-compose up --build -d
+            
+            echo '=== Waiting for containers to start ==='
+            sleep 10
+            
+            echo '=== Checking container status ==='
+            docker-compose ps
+            
+            echo '=== Checking VPN connection ==='
+            docker exec openvpn-nl curl -s https://ifconfig.me || echo 'VPN check will complete shortly'
+          
+            echo '=== Deployment Completed Successfully! ==='
+          "
+
+      - name: Verify deployment
+        run: |
+          ssh -o StrictHostKeyChecking=no deployer@109.120.182.198 "
+            cd ~/app
+            echo '=== Final Status Check ==='
+            docker-compose ps
+            echo ''
+            echo '=== Container Logs (last 20 lines) ==='
+            docker-compose logs --tail=20
+          "
+
+      - name: Cleanup local secrets
+        if: always()
+        run: |
+          rm -f .env only_arthur.ovpn

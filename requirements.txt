@@ -1,0 +1,12 @@
+python-dotenv~=1.1.0
+requests~=2.32.4
+uvicorn~=0.34.2
+fastapi~=0.115.12
+pydantic~=2.11.3
+starlette~=0.46.2
+groq~=0.32.0
+SQLAlchemy~=2.0.40
+asyncpg~=0.30.0
+pyway~=0.3.32
+pgvector~=0.4.1
+python-multipart~=0.0.20
