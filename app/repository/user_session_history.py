@@ -1,19 +1,12 @@
-import uuid
 from datetime import datetime
 from typing import Optional, List, Sequence
 
-from sqlalchemy import select, delete, func
-
-from common import connection_manager
-from dto import UserRequest
-from models import UserSessionHistory
-
-from datetime import datetime
-from typing import Optional, List, Sequence
-
+from sqlalchemy import func
 from sqlalchemy import select, delete
 from sqlalchemy.orm import selectinload
 
+from common import connection_manager
+from models import UserSessionHistory
 from models.user_session_history import Session
 
 
@@ -21,6 +14,7 @@ async def create_user_session(
         input_text: str,
         session_id: str,
         answer: str,
+        intent: str,
         answer_embedding: Optional[List[float]] = None,
         is_description: bool = False
 ) -> UserSessionHistory:
@@ -31,7 +25,8 @@ async def create_user_session(
             answer=answer,
             answer_embedding=answer_embedding,
             creation_date=datetime.now(),
-            is_description=is_description
+            is_description=is_description,
+            intent=intent
         )
         session.add(record)
         await session.flush()
@@ -48,7 +43,7 @@ async def get_by_session_id(
             UserSessionHistory.session_id == session_id
         )
         if order_by_date:
-            stmt = stmt.order_by(UserSessionHistory.creation_date.asc())
+            stmt = stmt.order_by(UserSessionHistory.creation_date.desc())
 
         result = await session.execute(stmt)
         return result.scalars().all()

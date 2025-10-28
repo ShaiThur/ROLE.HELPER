@@ -45,5 +45,6 @@ class UserSessionHistory(Base):
         default=False,
         server_default="false"
     )
+    intent: Mapped[str] = mapped_column(Text, nullable=False)
 
     session: Mapped["Session"] = relationship("Session", back_populates="user_sessions")

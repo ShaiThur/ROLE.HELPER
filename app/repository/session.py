@@ -17,7 +17,7 @@ async def create_session(session_id: Optional[str], user_id: str) -> Session:
             session_record = Session(
                 id=str(uuid.uuid4()),
                 user_id=user_id,
-                description=""
+                description=f"сессия {str(uuid.uuid4())}",
             )
             session.add(session_record)
             await session.flush()
