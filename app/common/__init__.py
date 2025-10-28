@@ -8,8 +8,8 @@ __all__ = [
     'INTENT_PROMPT'
 ]
 
-from .log_config import LOGGING_CONFIG
 from .constants import CommonConstants, ModelsConstants, DbConstants
 from .db_connection import connection_manager
 from .exception import FileToProcessError
+from .log_config import LOGGING_CONFIG
 from .prompts import INTENT_PROMPT
