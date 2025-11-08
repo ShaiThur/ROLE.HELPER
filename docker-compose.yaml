@@ -11,15 +11,13 @@ services:
       - /dev/net/tun
     environment:
       - TZ=Europe/Amsterdam
-      - FIREWALL=true
-      - ROUTE=192.168.0.0/16
     volumes:
       - ./proxy/only_arthur.ovpn:/vpn/vpn.conf:ro
     dns:
       - 1.1.1.1
       - 8.8.8.8
     sysctls:
-      - net.ipv6.conf.all.disable_ipv6=0
+      - net.ipv6.conf.all.disable_ipv6=1
     healthcheck:
       test: [ "CMD", "sh", "-c", "curl -sf https://ifconfig.me | grep -q '.'" ]
       interval: 60s
@@ -69,8 +67,8 @@ services:
     logging:
       driver: "json-file"
       options:
-        max-file: 5
-        max-size: 10m
+        max-file: "5"
+        max-size: "10m"
     build:
       context: "."
       dockerfile: ./Dockerfile

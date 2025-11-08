@@ -31,7 +31,7 @@ class SessionRequest(BaseModel):
 
 
 class SystemResponse(BaseModel):
-    session_id: Optional[str]
+    session_id: Optional[str] = ""
     text: str
 
 
