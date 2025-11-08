@@ -40,7 +40,7 @@ jobs:
 
             if [ ! -d .git ]; then
               echo 'Cloning repository...'
-              git clone https://github.com/ShaiThur/${{ github.repository }}.git
+              git clone https://github.com/${{ github.repository }}.git
             else
               echo 'Pulling latest changes...'
               git pull origin main
