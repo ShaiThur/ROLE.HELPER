@@ -13,8 +13,8 @@ INTENT_PROMPT = """
 
 INTENT_SUBPROMPT = """
 Ты знаешь последние 2 сообщения из диалога пользователя с системой.
-1) {"user": "%s"},
-2) {"assistant": "%s"}
+1) пользователь: {user},
+2) система: {assistant}
 """
 
 # Qwen-32B temperature 0.75, reasoning=none, top_p=0.95

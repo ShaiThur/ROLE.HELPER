@@ -32,7 +32,7 @@ async def send_base_llm_response(messages: List[Dict[str, str]]) -> str:
 
 async def define_intent(user_query: str, context: Optional[HistoryResponse]) -> Intent:
     if context:
-        sub_prompt = INTENT_SUBPROMPT.format(context.query, context.answer)
+        sub_prompt = INTENT_SUBPROMPT.format(user=context.query, assistant=context.answer)
     else:
         sub_prompt = ""
     response = await ModelsConstants.GROQ_CLIENT.chat.completions.create(
@@ -68,7 +68,7 @@ async def create_scenario(user_query: str, context: Optional[List[HistoryRespons
             "content": SETTING_PROMPT,
         },
     ]
-    messages.extend(
+    user_prevs =[
         [
             {
                 "role": "user",
@@ -79,13 +79,19 @@ async def create_scenario(user_query: str, context: Optional[List[HistoryRespons
                 "content": c.answer,
             }
         ] for c in context[0:len(context) if 5 >= len(context) > 0 else 0 if len(context) == 0 else 5]
-    )
+    ]
+    log.info(f"Previous messages: {user_prevs}")
+
+    for prev in user_prevs:
+        messages.extend(prev)
+
     messages.append(
         {
             "role": "user",
             "content": user_query,
         }
     )
+    print(messages)
     return await send_base_llm_response(messages)
 
 
@@ -101,7 +107,7 @@ async def create_user_specs(user_query: str, context: Optional[List[HistoryRespo
             "content": CREATE_USER_PROMPT.format(sub_prompt),
         },
     ]
-    messages.extend(
+    user_prevs = [
         [
             {
                 "role": "user",
@@ -112,7 +118,12 @@ async def create_user_specs(user_query: str, context: Optional[List[HistoryRespo
                 "content": c.answer,
             }
         ] for c in context[0:len(context) if 5 >= len(context) > 0 else 0 if len(context) == 0 else 5]
-    )
+    ]
+    log.info(f"Previous messages: {user_prevs}")
+
+    for prev in user_prevs:
+        messages.extend(prev)
+
     messages.append(
         {
             "role": "user",
@@ -129,7 +140,9 @@ async def run_processing(user_query: UserRequest, file: Optional[UploadFile | st
 
     session_id = (await create_session(user_query.session_id, user_query.user_id)).id
     messages = await get_user_history(session_id)
+    log.info(f"Messages: {messages}")
     intent = await define_intent(user_query.input_text, messages[-1] if messages else None)
+    log.info(f"Intent: {intent}")
 
     match intent:
         case Intent.OTHER:
