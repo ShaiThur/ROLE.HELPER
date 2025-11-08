@@ -25,4 +25,5 @@ class PostgresConnectionManager:
             finally:
                 await self._engine.dispose()
 
+
 connection_manager = PostgresConnectionManager(DbConstants.DB_URL, DbConstants.DB_CONFIG)

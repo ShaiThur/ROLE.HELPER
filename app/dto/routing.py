@@ -12,8 +12,8 @@ class AskFormat(StrEnum):
 
 
 class UserRequest(BaseModel):
-    user_id: str
-    session_id: str
+    user_id: Optional[str] = None
+    session_id: Optional[str] = None
     ask_format: AskFormat = AskFormat.TEXT
     input_text: Optional[str] = "Скажи привет"
 
@@ -25,7 +25,13 @@ class UserRequest(BaseModel):
         return value
 
 
+class SessionRequest(BaseModel):
+    session_id: Optional[str]
+    text: str
+
+
 class SystemResponse(BaseModel):
+    session_id: Optional[str] = ""
     text: str
 
 
@@ -33,3 +39,8 @@ class HistoryResponse(BaseModel):
     query: str
     answer: str
     timestamp: datetime
+
+
+class SessionResponse(BaseModel):
+    session_id: str
+    session_name: str

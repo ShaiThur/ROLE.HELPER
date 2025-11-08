@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fastapi import APIRouter, UploadFile, File
+from fastapi import APIRouter, UploadFile, File, Cookie
 from starlette import status
 
 from dto import SystemResponse, UserRequest
@@ -22,6 +22,9 @@ llm_router = APIRouter(prefix="/llm", tags=["main controller"])
 )
 async def ask_llm(
         request: UserRequest,
-        file_to_process: Optional[UploadFile | str] = File(None)
+        user_id: str = Cookie(""),
+    file_to_process: Optional[UploadFile | str] = File(None)
 ) -> SystemResponse:
+    if user_id != "":
+        request.user_id = user_id
     return await run_processing(request, file_to_process)

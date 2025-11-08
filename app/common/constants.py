@@ -9,12 +9,14 @@ load_dotenv()
 class CommonConstants:
     SERVICE_NAME = os.getenv("SERVICE_NAME")
     LOG_LEVEL = os.getenv("LOG_LEVEL")
+    DEFAULT_REJECTION = "Не совсем понял, задай вопрос еще раз, пожалуйста"
 
 
 class ModelsConstants:
     GROQ_CLIENT = AsyncGroq(api_key=os.getenv("API_KEY"))
     FILE_SIZE_LIMIT_IN_MB = int(os.getenv("FILE_SIZE_LIMIT_IN_MB")) * 1024 * 1024
     LLM_STRUCTURED_OUTPUT_NAME = os.getenv("LLM_STRUCTURED_OUTPUT_NAME")
+    LLM_NAME = os.getenv("LLM_NAME")
     ASR_NAME = os.getenv("ASR_NAME")
 
 

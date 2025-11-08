@@ -1,3 +1,4 @@
+import logging
 import uuid
 
 from fastapi import UploadFile
@@ -16,6 +17,8 @@ async def transcribe(file: UploadFile | str) -> SystemResponse:
         transcription = await ModelsConstants.GROQ_CLIENT.audio.transcriptions.create(
             file=(f"{uuid.uuid4()}.mp3", file_data.read()),
             model=ModelsConstants.ASR_NAME,
+            language="ru",
             response_format="text",
         )
+        logging.info("Transcription complete: %s", transcription)
         return SystemResponse(text=transcription)
