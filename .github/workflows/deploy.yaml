@@ -20,9 +20,7 @@ jobs:
 
       - name: Create .env file
         run: |
-          cat > .env << 'EOF'
-          ${{ secrets.ENV_FILE }}
-          EOF
+          echo "${{ secrets.ENV_FILE }}" > .env
 
       - name: Create VPN config
         run: |
@@ -42,7 +40,7 @@ jobs:
 
             if [ ! -d .git ]; then
               echo 'Cloning repository...'
-              git clone https://github.com/ShaiThur/${{ github.repository }}.git .
+              git clone https://github.com/ShaiThur/${{ github.repository }}.git
             else
               echo 'Pulling latest changes...'
               git pull origin main
