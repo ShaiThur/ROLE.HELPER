@@ -82,7 +82,7 @@ jobs:
 
       - name: Verify deployment
         run: |
-          ssh -o StrictHostKeyChecking=no deployer@109.120.182.198 "
+          ssh -o StrictHostKeyChecking=no ubuntu@109.120.182.198 "
             cd ~/app
             echo '=== Final Status Check ==='
             sudo docker-compose ps
