@@ -41,7 +41,8 @@ jobs:
       - name: Copy files to server
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@109.120.182.198 "mkdir -p ~/app/${{ github.event.repository.name }}/proxy"
-          scp -o StrictHostKeyChecking=no echo "${{ secrets.ENV_FILE }}" >> .env ubuntu@109.120.182.198:~/app/${{ github.event.repository.name }}/.env
+          echo "${{ secrets.ENV_FILE }}" >> .env
+          scp -o StrictHostKeyChecking=no .env ubuntu@109.120.182.198:~/app/${{ github.event.repository.name }}/.env
           scp -o StrictHostKeyChecking=no only_arthur.ovpn ubuntu@109.120.182.198:~/app/${{ github.event.repository.name }}/proxy/only_arthur.ovpn
 
       - name: Run docker
