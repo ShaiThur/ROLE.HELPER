@@ -20,7 +20,7 @@ jobs:
 
       - name: Create .env file
         run: |
-          echo "${{ secrets.ENV_FILE }}" > .env
+          echo "${{ secrets.ENV_FILE }}" > file.env
 
       - name: Create VPN config
         run: |
@@ -34,7 +34,7 @@ jobs:
 
             if [ ! -d .git ]; then
               echo 'Cloning repository...'
-              git clone https://github.com/${{ github.repository }}.git
+              git clone https://github.com/${{ github.repository }}.git ./app
             else
               echo 'Pulling latest changes...'
               git pull origin main
@@ -44,8 +44,8 @@ jobs:
 
       - name: Copy files to server
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@109.120.182.198 "mkdir -p ~/app/${{ github.event.repository.name }}/proxy"
-          scp -o StrictHostKeyChecking=no .env ubuntu@109.120.182.198:~/app/${{ github.event.repository.name }}/.env
+          ssh -o StrictHostKeyChecking=no ubuntu@109.120.182.198 "if [ ! -d .git ]; then mkdir -p ~/app/${{ github.event.repository.name }}/proxy"
+          scp -o StrictHostKeyChecking=no file.env ubuntu@109.120.182.198:~/app/${{ github.event.repository.name }}/.env
           scp -o StrictHostKeyChecking=no only_arthur.ovpn ubuntu@109.120.182.198:~/app/${{ github.event.repository.name }}/proxy/only_arthur.ovpn
 
       - name: Run docker
