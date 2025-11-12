@@ -22,6 +22,10 @@ jobs:
         run: |
           echo "${{ secrets.OVPN_CONFIG_BASE64 }}" | base64 -d > only_arthur.ovpn
 
+      - name: Create .env
+        run: |
+          echo "${{ secrets.ENV_FILE }}" >> .env
+
       - name: Copy respoitory
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@109.120.182.198 "
@@ -40,10 +44,9 @@ jobs:
 
       - name: Copy files to server
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@109.120.182.198 "mkdir -p ~/app/${{ github.event.repository.name }}/proxy"
-          echo "${{ secrets.ENV_FILE }}" >> .env
-          scp -o StrictHostKeyChecking=no .env ubuntu@109.120.182.198:~/app/${{ github.event.repository.name }}/.env
-          scp -o StrictHostKeyChecking=no only_arthur.ovpn ubuntu@109.120.182.198:~/app/${{ github.event.repository.name }}/proxy/only_arthur.ovpn
+          ssh -o StrictHostKeyChecking=no ubuntu@109.120.182.198 "mkdir -p ~/app/proxy"
+          scp -o StrictHostKeyChecking=no .env ubuntu@109.120.182.198:~/app/.env
+          scp -o StrictHostKeyChecking=no only_arthur.ovpn ubuntu@109.120.182.198:~/app/proxy/only_arthur.ovpn
 
       - name: Run docker
         run: |
