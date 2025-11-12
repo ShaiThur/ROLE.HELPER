@@ -8,7 +8,6 @@ load_dotenv()
 
 class CommonConstants:
     SERVICE_NAME = os.getenv("SERVICE_NAME")
-    LOG_LEVEL = os.getenv("LOG_LEVEL")
     DEFAULT_REJECTION = "Не совсем понял, задай вопрос еще раз, пожалуйста"
 
 
