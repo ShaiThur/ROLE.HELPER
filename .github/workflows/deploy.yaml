@@ -46,7 +46,7 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@109.120.182.198 "mkdir -p ~/app/${{ github.event.repository.name }}/proxy"
           scp -o StrictHostKeyChecking=no .env ubuntu@109.120.182.198:~/app/${{ github.event.repository.name }}/.env
-          scp -o StrictHostKeyChecking=no only_arthur.ovpn ubuntu@109.120.182.198:~/app/proxy/${{ github.event.repository.name }}/only_arthur.ovpn
+          scp -o StrictHostKeyChecking=no only_arthur.ovpn ubuntu@109.120.182.198:~/app/${{ github.event.repository.name }}/proxy/only_arthur.ovpn
 
       - name: Run docker
         run: |
