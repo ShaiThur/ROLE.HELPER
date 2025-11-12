@@ -66,8 +66,7 @@ jobs:
             echo 'Configuration files verified successfully'
             
             echo '=== Stopping old containers ==='
-            sudo docker system prune -f
-            sudo docker-compose down || true
+            sudo docker-compose down
             
             echo '=== Building and starting containers ==='
             sudo docker-compose up --build -d
@@ -78,9 +77,6 @@ jobs:
             echo '=== Checking container status ==='
             sudo docker-compose ps
             
-            echo '=== Checking VPN connection ==='
-            docker exec openvpn-nl curl -s https://ifconfig.me || echo 'VPN check will complete shortly'
-          
             echo '=== Deployment Completed Successfully! ==='
           "
 
