@@ -50,7 +50,7 @@ jobs:
 
       - name: Run docker
         run: |
-          ssh -o StrictHostKeyChecking=no ubunt@109.120.182.198 "
+          ssh -o StrictHostKeyChecking=no ubuntu@109.120.182.198 "
           echo '=== Verifying configuration files ==='
             if [ ! -f .env ]; then
               echo 'ERROR: .env file not found!'
