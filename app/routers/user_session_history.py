@@ -13,7 +13,9 @@ history_router = APIRouter(prefix="/history", tags=["history"])
 async def get_history(
         session_id: str = Query(),
 ) -> List[HistoryResponse]:
-    return await get_user_history(session_id)
+    history = await get_user_history(session_id)
+    history.reverse()
+    return history
 
 
 @history_router.get("/user_sessions")

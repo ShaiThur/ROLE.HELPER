@@ -15,7 +15,7 @@ async def create_session(session_id: Optional[str], user_id: str) -> Session:
             found_session = None
         if not found_session:
             session_record = Session(
-                id=str(uuid.uuid4()),
+                id=session_id,
                 user_id=user_id,
                 description=f"сессия {str(uuid.uuid4())}",
             )
