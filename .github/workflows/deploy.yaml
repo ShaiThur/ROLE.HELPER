@@ -20,8 +20,7 @@ jobs:
 
       - name: Create .env file
         run: |
-          echo "${{ secrets.ENV_FILE }}"
-          echo "${{ secrets.ENV_FILE }}" > file.env
+          echo "${{ secrets.ENV_FILE }}" | base64 -d > file.env
 
       - name: Create VPN config
         run: |
