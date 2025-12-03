@@ -11,10 +11,4 @@ class Intent(str, Enum):
 
 class ImageTheme(str, Enum):
     USER = "USER"
-    THEME = "THEME"
-
-    def value_of(self) -> str:
-        if self == ImageTheme.USER:
-            return "пользователя"
-        if self == ImageTheme.THEME:
-            return "локации, сеттинга или истории"
+    LOCATION = "LOCATION"

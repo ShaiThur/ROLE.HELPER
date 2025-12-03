@@ -55,6 +55,8 @@ services:
     restart: unless-stopped
 
   python-app:
+    volumes:
+      - ./images:/images
     restart: always
     container_name: role-helper
     image: role-helper:1.0
