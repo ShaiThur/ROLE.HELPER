@@ -4,7 +4,8 @@ from typing import Optional, List, Dict
 
 from fastapi import UploadFile
 
-from common import ModelsConstants, INTENT_PROMPT, INTENT_SUBPROMPT, SETTING_PROMPT, CommonConstants, CREATE_USER_PROMPT
+from common import ModelsConstants, INTENT_PROMPT, INTENT_SUBPROMPT, SETTING_PROMPT, CommonConstants, \
+    CREATE_USER_PROMPT, CREATE_USER_SUBPROMPT
 from common.enums import Intent
 from dto import UserRequest, SystemResponse, IntentResponse, HistoryResponse
 from dto.routing import AskFormat
@@ -91,13 +92,12 @@ async def create_scenario(user_query: str, context: Optional[List[HistoryRespons
             "content": user_query,
         }
     )
-    print(messages)
     return await send_base_llm_response(messages)
 
 
 async def create_user_specs(user_query: str, context: Optional[List[HistoryResponse]]) -> str:
     if len(context) > 0:
-        sub_prompt = CREATE_USER_PROMPT.format(context[-1].answer)
+        sub_prompt = CREATE_USER_SUBPROMPT.format(context[-1].answer)
     else:
         sub_prompt = ""
 
