@@ -1,7 +1,9 @@
 import os
 import uuid
+from io import BytesIO
 
 from fastapi import APIRouter
+from starlette.responses import StreamingResponse
 
 from dto.image import CreateImageRequest, CreateImageResponse
 from service.image_generator import create_image
@@ -35,5 +37,15 @@ async def get_image_by_img_id(img_id: str) -> CreateImageResponse:
             img_id=img_id,
             img_path=f"./app/images/{img_id}.png"
         )
+    else:
+        raise ValueError()
+
+
+@image_router.get("/image/show/{img_id}")
+async def show_image_by_img_id(img_id: str) -> StreamingResponse:
+    print(os.path.exists(f"../images/{img_id}.png"))
+    if os.path.exists(f"../images/{img_id}.png"):
+        with open(f"../images/{img_id}.png", "rb") as f:
+            return StreamingResponse(BytesIO(f.read()), media_type="image/png")
     else:
         raise ValueError()
