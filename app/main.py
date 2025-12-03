@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from logging.config import dictConfig
 
 from common import LOGGING_CONFIG, DbConstants, CommonConstants
-from routers import voice_router, llm_router
+from routers import voice_router, llm_router, image_router
 from middleware import ExceptionMiddleware
 from routers import history_router
 
@@ -42,6 +42,7 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, 
 app.include_router(voice_router)
 app.include_router(llm_router)
 app.include_router(history_router)
+app.include_router(image_router)
 dictConfig(LOGGING_CONFIG)
 
 if DbConstants.PYWAY_ENABLED:

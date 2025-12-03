@@ -17,6 +17,8 @@ class ModelsConstants:
     LLM_STRUCTURED_OUTPUT_NAME = os.getenv("LLM_STRUCTURED_OUTPUT_NAME")
     LLM_NAME = os.getenv("LLM_NAME")
     ASR_NAME = os.getenv("ASR_NAME")
+    API_IMAGE_KEY=os.getenv("API_IMAGE_KEY")
+    IMAGE_GENERATION_NAME = os.getenv("IMAGE_GENERATION_NAME")
 
 
 class DbConstants:
