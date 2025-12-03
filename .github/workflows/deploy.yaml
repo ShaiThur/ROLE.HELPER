@@ -31,13 +31,14 @@ jobs:
           ssh -o StrictHostKeyChecking=no ubuntu@109.120.182.198 "
             echo '=== Starting cloning ==='
             cd ~/app
+            mkdir -p images
 
             if [ ! -d .git ]; then
               echo 'Cloning repository...'
               git clone https://github.com/${{ github.repository }}.git ./app
             else
               echo 'Pulling latest changes...'
-              git pull origin main
+              git pull origin master
             fi
             echo '=== Repo cloned ==='
           "

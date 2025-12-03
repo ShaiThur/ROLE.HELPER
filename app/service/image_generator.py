@@ -1,3 +1,4 @@
+import json
 import logging
 
 import httpx
@@ -5,21 +6,53 @@ from httpx import Response
 
 from common import ModelsConstants
 from common.enums import ImageTheme
-from common.prompts import IMAGE_GENERATION_PROMPT
-from service.llm import send_base_llm_response
-from service.user_session import get_user_history
+from common.prompts import IMAGE_LOCATION_GENERATION_PROMPT, IMAGE_PERSON_GENERATION_PROMPT
+from dto.image import ImageResponse
 
 log = logging.getLogger(__name__)
 
 
-async def __prepare_prompt__(text: str, theme: ImageTheme) -> str:
-    theme_text = ImageTheme.value_of(theme)
-    prompt = IMAGE_GENERATION_PROMPT.format(theme=theme_text, info=text)
-    return await send_base_llm_response(
-        [
-            {"role": "system", "content": prompt}
-        ]
+async def __prepare_prompt__(context: str) -> ImageTheme:
+    response = await ModelsConstants.GROQ_CLIENT.chat.completions.create(
+        model=ModelsConstants.LLM_STRUCTURED_OUTPUT_NAME,
+        messages=[
+            {
+                "role": "system",
+                "content": IMAGE_LOCATION_GENERATION_PROMPT,
+            },
+            {
+                "role": "user",
+                "content": context
+            },
+        ],
+        response_format={
+            "type": "json_schema",
+            "json_schema": {
+                "name": "intent_classification",
+                "schema": ImageResponse.model_json_schema()
+            }
+        }
     )
+
+    raw_result = json.loads(response.choices[0].message.content or "{}")
+    result = ImageResponse.model_validate(raw_result)
+    if result.theme is ImageTheme.USER:
+        return IMAGE_PERSON_GENERATION_PROMPT.format(context=context)
+    else:
+        return IMAGE_LOCATION_GENERATION_PROMPT.format(context=context)
+
+
+async def __create_image_prompt__(context: str) -> str:
+    response = await ModelsConstants.GROQ_CLIENT.chat.completions.create(
+        model=ModelsConstants.LLM_NAME,
+        messages=[{"role": "system", "content": context}],
+        temperature=0.75,
+        max_completion_tokens=1024,
+        top_p=0.95,
+        reasoning_effort="none",
+        stop=None
+    )
+    return response.choices[0].message.content
 
 
 async def __create_image__(prompt: str):
@@ -37,12 +70,7 @@ async def __create_image__(prompt: str):
         return response
 
 
-async def create_image(session_id: str, theme: ImageTheme) -> Response:
-    history_responses = await get_user_history(session_id)
-    text = [
-        i.answer for i in history_responses
-        if "Эпоха" in i.answer and theme == ImageTheme.THEME
-           or "Предыстория" in i.answer and theme == ImageTheme.USER
-    ][0]
-    prompt = await __prepare_prompt__(text, theme)
-    return await __create_image__(prompt)
+async def create_image(context: str) -> Response:
+    prepared_prompt = await __prepare_prompt__(context)
+    image_prompt = await __create_image_prompt__(prepared_prompt)
+    return await __create_image__(image_prompt)
