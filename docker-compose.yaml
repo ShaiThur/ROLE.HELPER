@@ -1,30 +1,27 @@
 version: "3.8"
 
 services:
-  openvpn:
+  xray-vpn:
     restart: always
-    image: dperson/openvpn-client:latest
-    container_name: openvpn-nl
+    image: teddysun/xray:latest
+    container_name: xray-vpn-nl
     cap_add:
       - NET_ADMIN
-    devices:
-      - /dev/net/tun
     environment:
       - TZ=Europe/Amsterdam
     volumes:
-      - ./proxy/only_arthur.ovpn:/vpn/vpn.conf:ro
-    dns:
-      - 1.1.1.1
-      - 8.8.8.8
+      - ./proxy/config.json:/etc/xray/config.json:ro
     sysctls:
       - net.ipv6.conf.all.disable_ipv6=1
     healthcheck:
-      test: [ "CMD", "sh", "-c", "curl -sf https://ifconfig.me | grep -q '.'" ]
+      test: [ "CMD", "sh", "-c", "wget -q --spider --timeout=10 --proxy=http://127.0.0.1:10808 https://ifconfig.me || exit 1" ]
       interval: 60s
       timeout: 10s
       retries: 5
       start_period: 30s
     ports:
+      - "10808:10808"
+      - "1080:1080"
       - "8081:8080"
     networks:
       - vpn_network
@@ -32,22 +29,22 @@ services:
   vpn-checker:
     image: curlimages/curl:latest
     container_name: vpn-check
-    network_mode: "service:openvpn"
+    network_mode: "service:xray-vpn"
     depends_on:
-      openvpn:
+      xray-vpn:
         condition: service_healthy
     command: >
       sh -c "
       while true; do
         echo '=== VPN Status Check ===';
         echo 'External IP:';
-        curl -s https://ifconfig.me;
+        curl -x http://127.0.0.1:10808 -s https://ifconfig.me;
         echo '';
         echo 'Location:';
-        curl -s https://ipapi.co/json | grep -E 'country_name|city';
+        curl -x http://127.0.0.1:10808 -s https://ipapi.co/json | grep -E 'country_name|city';
         echo '';
-        echo 'Testing blocked API...';
-        curl -s -o /dev/null -w 'HTTP Status: %{http_code}\n' https://twitter.com || echo 'API check failed';
+        echo 'Testing connection...';
+        curl -x http://127.0.0.1:10808 -s -o /dev/null -w 'HTTP Status: %{http_code}\n' https://twitter.com || echo 'Connection check failed';
         echo '========================';
         sleep 300;
       done
@@ -60,9 +57,9 @@ services:
     restart: always
     container_name: role-helper
     image: role-helper:1.0
-    network_mode: "service:openvpn"
+    network_mode: "service:xray-vpn"
     depends_on:
-      openvpn:
+      xray-vpn:
         condition: service_healthy
       db:
         condition: service_started
@@ -78,6 +75,8 @@ services:
       - .env
     environment:
       - DB_HOST=db
+      - HTTP_PROXY=http://127.0.0.1:10808
+      - HTTPS_PROXY=http://127.0.0.1:10808
     command: [ "python", "main.py" ]
 
   db:

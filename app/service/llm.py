@@ -5,7 +5,7 @@ from typing import Optional, List, Dict
 from fastapi import UploadFile
 
 from common import ModelsConstants, INTENT_PROMPT, INTENT_SUBPROMPT, SETTING_PROMPT, CommonConstants, \
-    CREATE_USER_PROMPT, CREATE_USER_SUBPROMPT
+    CREATE_USER_PROMPT, CREATE_USER_SUBPROMPT, SUMMARIZATION_SYSTEM_PROMPT, SUMMARIZATION_USER_PROMPT
 from common.enums import Intent
 from dto import UserRequest, SystemResponse, IntentResponse, HistoryResponse
 from dto.routing import AskFormat
@@ -133,6 +133,26 @@ async def create_user_specs(user_query: str, context: Optional[List[HistoryRespo
     return await send_base_llm_response(messages)
 
 
+async def summarize_info(session_id: str) -> str:
+    messages = await get_user_history(session_id)
+    messages.reverse()
+    history_text = [
+        f"{i+1}: я - {m.query.replace("\n", "")};\nассистент - {m.answer.replace("\n", "").replace("  "," ")}\n\n"
+        for i, m in enumerate(messages)
+    ]
+    llm_messages = [
+        {
+            "role": "system",
+            "content": SUMMARIZATION_SYSTEM_PROMPT,
+        },
+        {
+            "role": "user",
+            "content": SUMMARIZATION_USER_PROMPT.format(history="".join(history_text))
+        }
+    ]
+    return await send_base_llm_response(llm_messages)
+
+
 async def run_processing(user_query: UserRequest, file: Optional[UploadFile | str] = None) -> SystemResponse:
     if user_query.ask_format == AskFormat.VOICE:
         user_query.input_text = (await transcribe(file)).text
@@ -156,5 +176,9 @@ async def run_processing(user_query: UserRequest, file: Optional[UploadFile | st
             user_response = await create_user_specs(user_query.input_text, messages)
             await create_user_session(user_query.input_text, session_id, user_response, Intent.CREATE_USER)
             return SystemResponse(session_id=session_id, text=user_response)
+        case Intent.HISTORY:
+            summary = await summarize_info(user_query.session_id)
+            await create_user_session(user_query.input_text, session_id, summary, Intent.HISTORY, is_description=True)
+            return SystemResponse(session_id=session_id, text=summary)
         case _:
             return SystemResponse(session_id=session_id, text=intent)
