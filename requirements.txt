@@ -10,3 +10,4 @@ asyncpg~=0.30.0
 pyway~=0.3.32
 pgvector~=0.4.1
 python-multipart~=0.0.20
+httpx[socks]~=0.28.1
