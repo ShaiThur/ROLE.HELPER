@@ -47,7 +47,7 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@109.120.182.198 "mkdir -p ~/app/proxy"
           scp -o StrictHostKeyChecking=no .env ubuntu@109.120.182.198:~/app/.env
-          scp -o StrictHostKeyChecking=no only_arthur.ovpn ubuntu@109.120.182.198:~/app/proxy/only_arthur.ovpn
+          scp -o StrictHostKeyChecking=no config.json ubuntu@109.120.182.198:~/app/proxy/config.json
 
       - name: Run docker
         run: |
